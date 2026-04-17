@@ -1,59 +1,99 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# WB Parser
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Тестовое задание
 
-## About Laravel
+## Стек технологий
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **PHP** 8.3
+- **Laravel** 12
+- **MySQL** 8.0 (filess.io free plan 10mb)
+- **Docker** / docker-compose
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Установка и запуск
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Клонировать репозиторий:
+   ```bash
+   git clone <https://github.com/DabaNorboev/wb-parser>
+   cd wb-parser
+   ```
+   
+2. Запустить контейнеры:
+    ```bash
+    docker-compose up -d
+   ```
+   
+3. Подключиться к контейнеру:
+    ```bash
+   docker-compose exec parser bash
+   ```
+   
+4. Установить зависимости:
+    ```bash
+   composer install
+   ```
+   
+5. Выполнить миграции:
+    ```bash
+    php artisan migrate
+   ```
+   
+## Загрузка данных из API
+- Команды для получения данных (период можно указать опцией --days):
+    ```bash
+    # Продажи (по умолчанию 30 дней)
+    php artisan fetch:sales
+    
+    # Заказы (по умолчанию 30 дней)
+    php artisan fetch:orders
+    
+    # Доходы (по умолчанию 30 дней)
+    php artisan fetch:incomes
+  
+    # Остатки на складах (только сегодня)
+    php artisan fetch:stocks
+    ```
+  
+- Период можно указать опцией --days, например:
+    ```bash
+    php artisan fetch:sales --days=14
+    ```
 
-## Learning Laravel
+## Доступы к базе данных
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+| Параметр | Значение |
+|----------|----------|
+| Хост | `sc4qae.h.filess.io` |
+| Порт | `61002` |
+| База данных | `wb_data_wifeframe` |
+| Пользователь | `wb_data_wifeframe` |
+| Пароль | `60693fe58cd708cd366436d1bc2f25e0830463dc` |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Структура базы данных
 
-## Laravel Sponsors
+| Таблица | Назначение | Уникальный ключ |
+|---------|------------|-----------------|
+| `sales` | Продажи | `sale_id` |
+| `orders` | Заказы | `g_number` |
+| `stocks` | Остатки на складах | `barcode` + `warehouse_name` + `date` |
+| `incomes` | Доходы | `income_id` |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Эндпоинты
 
-### Premium Partners
+| Эндпоинт | Параметры |
+|----------|-----------|
+| `/api/sales` | `dateFrom`, `dateTo` |
+| `/api/orders` | `dateFrom`, `dateTo` |
+| `/api/stocks` | `dateFrom` (текущий день) |
+| `/api/incomes` | `dateFrom`, `dateTo` |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Текущий объём данных(за последние 30 дней от 17.04.2026)
 
-## Contributing
+| Таблица | Количество записей |
+|---------|-------------------|
+| sales | 11 448 |
+| orders | 12 681 |
+| stocks | 3 746 |
+| incomes | 48 |
+| **Всего** | **27 923** |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
