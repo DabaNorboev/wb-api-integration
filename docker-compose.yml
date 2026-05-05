@@ -1,12 +1,40 @@
 version: '3.8'
 
 services:
-    parser:
-        container_name: php_parser
-        build: ../wb-importer/docker/php
-        working_dir: /app
-        volumes:
-            - .:/app
-        env_file:
-            - .env
-        command: tail -f /dev/null
+  wb_php:
+    container_name: wb_php
+    build: ./docker/php
+    working_dir: /app
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    ports:
+      - 9000:9000
+    depends_on:
+      - wb_mysql
+    networks:
+      - app-network
+
+  wb_mysql:
+    container_name: wb_mysql
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-root}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 9999:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
+    driver: bridge
