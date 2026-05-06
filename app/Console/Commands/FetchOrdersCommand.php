@@ -6,9 +6,9 @@ use App\Models\Order;
 
 class FetchOrdersCommand extends BaseFetchCommand
 {
-    protected $signature = 'fetch:orders {--days=30}';
+    protected $signature = 'fetch:orders {--days=120}';
 
-    protected $description = 'Fetch orders data from API by default for last 30 days';
+    protected $description = 'Fetch orders data from API by default for last 120 days';
 
     protected function getEndpoint(): string
     {
@@ -22,7 +22,7 @@ class FetchOrdersCommand extends BaseFetchCommand
 
     protected function getUniqueKeyFields(): array
     {
-        return ['g_number'];
+        return ['g_number', 'account_id'];
     }
 
     protected function getApiParams(): array
@@ -32,5 +32,10 @@ class FetchOrdersCommand extends BaseFetchCommand
             'dateFrom' => now()->subDays($days)->format('Y-m-d'),
             'dateTo' => now()->format('Y-m-d'),
         ];
+    }
+
+    protected function getServiceName(): string
+    {
+        return 'wildberries';
     }
 }

@@ -10,9 +10,6 @@ abstract class BaseAddCommand extends Command
 {
     protected function chooseFromModel(string $model, string $column, string $question): int
     {
-//        $items = $model::pluck($column, 'id')->toArray();
-//        $chosen = $this->choice($question, $items);
-//        return $model::where($column, $chosen)->value('id');
         $items = $model::pluck($column, 'id')->toArray();
 
         if (empty($items)) {

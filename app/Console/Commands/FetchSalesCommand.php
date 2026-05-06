@@ -6,8 +6,8 @@ use App\Models\Sale;
 
 class FetchSalesCommand extends BaseFetchCommand
 {
-    protected $signature = 'fetch:sales {--days=30}';
-    protected $description = 'Fetch sales data from API by default for last 30 days';
+    protected $signature = 'fetch:sales {--days=120}';
+    protected $description = 'Fetch sales data from API by default for last 120 days';
 
     protected function getEndpoint(): string
     {
@@ -21,7 +21,7 @@ class FetchSalesCommand extends BaseFetchCommand
 
     protected function getUniqueKeyFields(): array
     {
-        return ['sale_id'];
+        return ['sale_id', 'account_id'];
     }
 
     protected function getApiParams(): array
@@ -31,5 +31,9 @@ class FetchSalesCommand extends BaseFetchCommand
             'dateFrom' => now()->subDays($days)->format('Y-m-d'),
             'dateTo' => now()->format('Y-m-d'),
         ];
+    }
+    protected function getServiceName(): string
+    {
+        return 'wildberries';
     }
 }

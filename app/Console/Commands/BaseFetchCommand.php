@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Token;
 use Illuminate\Console\Command;
 use App\Services\ApiFetcherService;
 
@@ -11,21 +12,30 @@ abstract class BaseFetchCommand extends Command
     abstract protected function getModel(): string;
     abstract protected function getUniqueKeyFields(): array;
     abstract protected function getApiParams(): array;
+    abstract protected function getServiceName(): string;
 
     public function handle(ApiFetcherService $fetcher)
     {
-        $endpoint = $this->getEndpoint();
+        $tokens = Token::whereHas('apiService', fn($q) =>
+        $q->where('name', $this->getServiceName())
+        )->with(['account', 'apiService'])->get();
 
-        $this->info("Fetching {$endpoint}...");
+        if ($tokens->isEmpty()) {
+            $this->error('токены не найдены');
+            return;
+        }
 
-        $total = $fetcher->fetch(
-            $endpoint,
-            $this->getModel(),
-            $this->getUniqueKeyFields(),
-            $this->getApiParams(),
-            $this->output
-        );
+        foreach ($tokens as $token) {
+            $this->info("Fetching {$this->getEndpoint()} for account: {$token->account->name}");
 
-        $this->info("Total {$endpoint} fetched: {$total}");
+            $fetcher->setBaseUrl($token->apiService->base_url);
+            $fetcher->setValue($token->value);
+
+            $total = $fetcher->fetch($this->getEndpoint(), $this->getModel(),
+                $this->getUniqueKeyFields(), $this->getApiParams(),
+                $this->output, $token->account_id);
+
+            $this->info("Total fetched: {$total}");
+        }
     }
 }

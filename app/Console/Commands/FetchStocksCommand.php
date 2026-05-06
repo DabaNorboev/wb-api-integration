@@ -19,7 +19,7 @@ class FetchStocksCommand extends BaseFetchCommand
     }
     protected function getUniqueKeyFields(): array
     {
-        return ['barcode', 'warehouse_name', 'date'];
+        return ['barcode', 'warehouse_name', 'date', 'account_id'];
     }
 
     protected function getApiParams(): array
@@ -27,5 +27,9 @@ class FetchStocksCommand extends BaseFetchCommand
         return [
             'dateFrom' => now()->format('Y-m-d'),
         ];
+    }
+    protected function getServiceName(): string
+    {
+        return 'wildberries';
     }
 }
