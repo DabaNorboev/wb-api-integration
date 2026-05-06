@@ -12,7 +12,7 @@ class AddCompany extends BaseAddCommand
      *
      * @var string
      */
-    protected $signature = 'add-company';
+    protected $signature = 'add:company';
 
     /**
      * The console command description.

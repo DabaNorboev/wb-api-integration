@@ -15,7 +15,7 @@ class AddToken extends BaseAddCommand
      *
      * @var string
      */
-    protected $signature = 'add-token';
+    protected $signature = 'add:token';
 
     /**
      * The console command description.

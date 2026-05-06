@@ -13,7 +13,7 @@ class AddAccount extends BaseAddCommand
      *
      * @var string
      */
-    protected $signature = 'add-account';
+    protected $signature = 'add:account';
 
     /**
      * The console command description.

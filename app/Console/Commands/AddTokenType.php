@@ -13,7 +13,7 @@ class AddTokenType extends BaseAddCommand
      *
      * @var string
      */
-    protected $signature = 'add-token-type';
+    protected $signature = 'add:token-type';
 
     /**
      * The console command description.

@@ -11,7 +11,7 @@ abstract class BaseFetchCommand extends Command
     abstract protected function getEndpoint(): string;
     abstract protected function getModel(): string;
     abstract protected function getUniqueKeyFields(): array;
-    abstract protected function getApiParams(): array;
+    abstract protected function getApiParams(int $accountId): array;
     abstract protected function getServiceName(): string;
 
     public function handle(ApiFetcherService $fetcher)
@@ -32,7 +32,7 @@ abstract class BaseFetchCommand extends Command
             $fetcher->setValue($token->value);
 
             $total = $fetcher->fetch($this->getEndpoint(), $this->getModel(),
-                $this->getUniqueKeyFields(), $this->getApiParams(),
+                $this->getUniqueKeyFields(), $this->getApiParams($token->account_id),
                 $this->output, $token->account_id);
 
             $this->info("Total fetched: {$total}");
