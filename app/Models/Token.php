@@ -11,6 +11,10 @@ class Token extends Model
 
     protected $guarded = false;
 
+    protected $casts = [
+        'value' => 'encrypted'
+    ];
+
     public function account(): belongsTo
     {
         return $this->belongsTo(Account::class);
