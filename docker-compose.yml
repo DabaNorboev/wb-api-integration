@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   wb_php:
     container_name: wb_php
@@ -11,6 +9,20 @@ services:
       - .env
     ports:
       - 9000:9000
+    depends_on:
+      - wb_mysql
+    networks:
+      - app-network
+
+  wb_scheduler:
+    container_name: wb_scheduler
+    build: ./docker/php
+    working_dir: /app
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    command: sh -c "while true; do php artisan schedule:run; sleep 60; done"
     depends_on:
       - wb_mysql
     networks:

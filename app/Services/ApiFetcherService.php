@@ -24,6 +24,7 @@ class ApiFetcherService
 
     public function fetch(string $endpoint, string $model, array $uniqueKeys, array $params, OutputStyle $output, int $accountId): int
     {
+        ini_set('memory_limit', '256M');
 //        $this->baseUrl = '';
         if (!$this->baseUrl || !$this->value) {
             $output->error("base_url или значение токена не было найдено");
@@ -72,7 +73,7 @@ class ApiFetcherService
         return $totalFetched;
     }
 
-    protected function fetchPage(string $endpoint, array $params, int $page, OutputStyle $output, int $retries = 3): ?array
+    protected function fetchPage(string $endpoint, array $params, int $page, OutputStyle $output, int $retries = 5): ?array
     {
         for ($attempt = 1; $attempt <= $retries; $attempt++) {
             $response = Http::timeout(30)->get("{$this->baseUrl}/{$endpoint}", array_merge($params, [
