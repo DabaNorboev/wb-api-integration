@@ -16,23 +16,19 @@ class ApiFetcherService
         $this->value = $value;
         return $this;
     }
+
     public function setBaseUrl(string $baseUrl): static
     {
         $this->baseUrl = $baseUrl;
         return $this;
     }
 
-    public function fetch(string $endpoint, string $model, array $uniqueKeys, array $params, OutputStyle $output, int $accountId): int
+    public function fetchPages(string $endpoint, array $params, OutputStyle $output, callable $onPage): int
     {
-        ini_set('memory_limit', '256M');
-//        $this->baseUrl = '';
         if (!$this->baseUrl || !$this->value) {
             $output->error("base_url или значение токена не было найдено");
             return 0;
         }
-
-        $now = now();
-        $totalFetched = 0;
 
         $firstPage = $this->fetchPage($endpoint, $params, 1, $output);
 
@@ -41,13 +37,15 @@ class ApiFetcherService
             return 0;
         }
 
-        $totalPages = ceil(($firstPage['meta']['total'] ?? 0) / $this->limit);
+        $totalItems = $firstPage['meta']['total'] ?? 0;
+        $totalPages = ceil($totalItems / $this->limit);
+        $totalFetched = 0;
 
-        $output->progressStart($firstPage['meta']['total'] ?? 0);
+        $output->progressStart($totalItems);
 
         $items = $firstPage['data'] ?? [];
         if (!empty($items)) {
-            $this->saveChunks($model, $items, $uniqueKeys, $now, $accountId);
+            $onPage($items);
             $totalFetched += count($items);
             $output->progressAdvance(count($items));
         }
@@ -62,7 +60,7 @@ class ApiFetcherService
 
             $items = $response['data'] ?? [];
             if (!empty($items)) {
-                $this->saveChunks($model, $items, $uniqueKeys, $now, $accountId);
+                $onPage($items);
                 $totalFetched += count($items);
                 $output->progressAdvance(count($items));
             }
@@ -121,24 +119,5 @@ class ApiFetcherService
 
         $output->error("не удалось получить страницу {$page} после {$retries} попыток");
         return null;
-    }
-
-    protected function saveChunks(string $model, array $items, array $uniqueKeys, string $now, int $accountId): void
-    {
-        $chunks = collect($items)
-            ->map(fn($item) => array_merge($item, [
-                'account_id' => $accountId,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]))
-            ->chunk(500);
-
-        foreach ($chunks as $chunk) {
-            $model::upsert(
-                $chunk->toArray(),
-                $uniqueKeys,
-                array_keys($chunk->first())
-            );
-        }
     }
 }

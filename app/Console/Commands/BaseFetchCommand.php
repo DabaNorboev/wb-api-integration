@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Models\Token;
-use Illuminate\Console\Command;
 use App\Services\ApiFetcherService;
+use App\Services\BatchUpsertService;
+use App\Services\DataMapperService;
+use Illuminate\Console\Command;
 
 abstract class BaseFetchCommand extends Command
 {
@@ -14,7 +16,7 @@ abstract class BaseFetchCommand extends Command
     abstract protected function getApiParams(int $accountId): array;
     abstract protected function getServiceName(): string;
 
-    public function handle(ApiFetcherService $fetcher)
+    public function handle(ApiFetcherService $fetcher, DataMapperService $mapper, BatchUpsertService $upserter)
     {
         $tokens = Token::whereHas('apiService', fn($q) =>
         $q->where('name', $this->getServiceName())
@@ -31,9 +33,20 @@ abstract class BaseFetchCommand extends Command
             $fetcher->setBaseUrl($token->apiService->base_url);
             $fetcher->setValue($token->value);
 
-            $total = $fetcher->fetch($this->getEndpoint(), $this->getModel(),
-                $this->getUniqueKeyFields(), $this->getApiParams($token->account_id),
-                $this->output, $token->account_id);
+            $model = $this->getModel();
+            $uniqueKeys = $this->getUniqueKeyFields();
+            $now = now();
+            $accountId = $token->account_id;
+
+            $total = $fetcher->fetchPages(
+                $this->getEndpoint(),
+                $this->getApiParams($accountId),
+                $this->output,
+                function (array $items) use ($mapper, $upserter, $model, $uniqueKeys, $now, $accountId) {
+                    $mapped = $mapper->map($items, $accountId, $now);
+                    $upserter->upsert($model, $mapped, $uniqueKeys);
+                }
+            );
 
             $this->info("Total fetched: {$total}");
         }
