@@ -8,7 +8,7 @@ class FetchOrdersCommand extends WildberriesFetchCommand
 {
     protected $signature = 'fetch:orders {--days=120}';
 
-    protected $description = 'Fetch orders data from API by default for last {$period} days';
+    protected $description = 'Fetch orders data from API by default for last 120 days';
 
     protected function getEndpoint(): string
     {

@@ -7,6 +7,8 @@ services:
       - .:/app
     env_file:
       - .env
+    environment:
+      - TZ=Europe/Moscow
     ports:
       - 9000:9000
     depends_on:
@@ -22,6 +24,8 @@ services:
       - .:/app
     env_file:
       - .env
+    environment:
+      - TZ=Europe/Moscow
     command: sh -c "while true; do php artisan schedule:run; sleep 60; done"
     depends_on:
       - wb_mysql
@@ -37,6 +41,7 @@ services:
       - MYSQL_DATABASE=${DB_DATABASE}
       - MYSQL_USER=${DB_USERNAME}
       - MYSQL_PASSWORD=${DB_PASSWORD}
+      - TZ=Europe/Moscow
     ports:
       - 9999:3306
     volumes:

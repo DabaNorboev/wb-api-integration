@@ -26,8 +26,8 @@ class AddApiService extends BaseAddCommand
      */
     public function handle()
     {
-        $name = $this->ask('название сервиса');
-        $baseUrl = $this->ask('base url');
+        $name = $this->askRequired('название сервиса');
+        $baseUrl = $this->askRequired('base url');
 
         ApiService::create([
             'name' => $name,

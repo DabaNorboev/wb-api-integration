@@ -1,91 +1,81 @@
-# WB Parser
+# WB API integration
 
-### Тестовое задание
+Импорт данных из API Wildberries: sales, stocks, incomes, orders.
 
-#### Бд вышла за лимиты, поэтому создана новая.
+## Стек
 
-## Стек технологий
+- PHP 8.3, Laravel 12, MySQL 8.0, docker
 
-- **PHP** 8.3
-- **Laravel** 12
-- **MySQL** 8.0 (filess.io free plan 10mb)
-- **Docker** / docker-compose
+## Установка
 
-## Установка и запуск
+```bash
+git clone git@github.com:DabaNorboev/wb-api-integration.git
+cd wb-api-integration
+docker-compose up -d --build
+docker exec wb_php composer install
+docker exec wb_php php artisan migrate --seed
+```
 
-1. Клонировать репозиторий:
-   ```bash
-   git clone <https://github.com/DabaNorboev/wb-parser>
-   cd wb-parser
-   ```
-   
-2. Запустить контейнеры:
-    ```bash
-    docker-compose up -d
-   ```
-   
-3. Подключиться к контейнеру:
-    ```bash
-   docker-compose exec parser bash
-   ```
-   
-4. Установить зависимости:
-    ```bash
-   composer install
-   ```
-   
-5. Выполнить миграции:
-    ```bash
-    php artisan migrate
-   ```
-   
-## Загрузка данных из API
-- Команды для получения данных (период можно указать опцией --days):
-    ```bash
-    # Продажи (по умолчанию 30 дней)
-    php artisan fetch:sales
-    
-    # Заказы (по умолчанию 30 дней)
-    php artisan fetch:orders
-    
-    # Доходы (по умолчанию 30 дней)
-    php artisan fetch:incomes
-  
-    # Остатки на складах (только сегодня)
-    php artisan fetch:stocks
-    ```
-  
-- Период можно указать опцией --days, например:
-    ```bash
-    php artisan fetch:sales --days=14
-    ```
+## Команды
 
-## Доступы к базе данных
+### Добавление сущностей
 
-| Параметр | Значение                                   |
-|----------|--------------------------------------------|
-| Хост | `vb2f8t.h.filess.io`                       |
-| Порт | `61001`                                    |
-| База данных | `wb_data_tightwhyif`                       |
-| Пользователь | `wb_data_tightwhyif`                       |
-| Пароль | `d3e0a996ab6332fc8b0ad9eb6c528e719b9d2c87` |
+```bash
+php artisan add:company
+php artisan add:account
+php artisan add:api-service
+php artisan add:token-type
+php artisan add:token
+```
 
-## Структура базы данных
+### Загрузка данных
 
-| Таблица | Назначение | Уникальный ключ |
-|---------|------------|-----------------|
-| `sales` | Продажи | `sale_id` |
-| `orders` | Заказы | `g_number` |
-| `stocks` | Остатки на складах | `barcode` + `warehouse_name` + `date` |
-| `incomes` | Доходы | `income_id` |
+```bash
+php artisan fetch:sales --days=100
+php artisan fetch:orders --days=90
+php artisan fetch:incomes --days=80
+php artisan fetch:stocks
+```
 
-### Эндпоинты
+Опция `--days` задаёт период загрузки (по умолчанию 120). Загружаются только свежие данные.
 
-| Эндпоинт | Параметры |
-|----------|-----------|
-| `/api/sales` | `dateFrom`, `dateTo` |
-| `/api/orders` | `dateFrom`, `dateTo` |
-| `/api/stocks` | `dateFrom` (текущий день) |
-| `/api/incomes` | `dateFrom`, `dateTo` |
+### Тестовые данные
 
+```bash
+php artisan migrate:fresh --seed
+```
 
+Создаёт компанию, 5 аккаунтов и API-сервис Wildberries с типом токена `api-key`. Все аккаунты получают идентичный токен.
+
+## Расписание
+
+Ежедневное обновление данных дважды в день, время по МСК. Настроено через `wb_scheduler` контейнер.
+
+| Команда           | Первый запуск | Второй запуск |
+|-------------------|---------------|---------------|
+| `fetch:incomes`   | 02:00         | 14:00         |
+| `fetch:orders`    | 02:30         | 14:30         |
+| `fetch:sales`     | 03:00         | 15:00         |
+| `fetch:stocks`    | 03:30         | 15:30         |
+
+Часовой пояс при желании можно изменить в 'docker-compose.yml'
+
+```yaml
+environment:
+  - TZ=Europe/Moscow
+```
+
+## Структура БД
+
+| Таблица        | Назначение   | Уникальный ключ                                      |
+|----------------|--------------|------------------------------------------------------|
+| `companies`    | Компании     | `id`                                                 |
+| `accounts`     | Аккаунты     | `id`                                                 |
+| `api_services` | API-сервисы  | `id`                                                 |
+| `token_types`  | Типы токенов | `id`                                                 |
+| `tokens`       | Токены       | `account_id` + `api_service_id`                      |
+| `sales`        | Продажи      | `sale_id` + `account_id`                             |
+| `orders`       | Заказы       | `g_number` + `account_id`                            |
+| `stocks`       | Остатки      | `barcode` + `warehouse_name` + `date` + `account_id` |
+| `incomes`      | Доходы       | `income_id` + `account_id`                           |
+```
