@@ -11,9 +11,12 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Пользователь и группа
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+# Параметризируем UID и GID
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+RUN groupadd -g $GROUP_ID www
+RUN useradd -u $USER_ID -ms /bin/bash -g www www
 
 USER www
 WORKDIR /var/www/html
